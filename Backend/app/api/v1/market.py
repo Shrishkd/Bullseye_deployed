@@ -15,7 +15,7 @@ router = APIRouter(prefix="/market", tags=["market"])
 
 
 # ===============================
-# INGEST PRICE (manual / bots)
+# INGEST PRICE
 # ===============================
 @router.post("/prices/ingest")
 async def ingest_price(
@@ -71,39 +71,21 @@ async def get_recent_prices(
         raise HTTPException(404, "Asset not found")
 
     prices = await prices_crud.get_recent_prices(db, asset.id, limit)
-    return prices[::-1]  # oldest → newest
+    return prices[::-1]
 
 
 # ===============================
-# QUOTE (LTP, INR)
+# QUOTE (Upstox, lazy provider)
 # ===============================
 @router.get("/quote/{symbol}")
-async def get_quote(
-    symbol: str,
-    user=Depends(get_current_user),
-):
-    """
-    Latest LTP for the given NSE symbol.
-    Resolves symbol via existing logic, fetches from Upstox.
-    """
+async def get_quote(symbol: str, user=Depends(get_current_user)):
     try:
         provider, resolved_symbol = await get_provider(symbol)
-    except ValueError:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid or unsupported symbol: {symbol}",
-        )
+        quote = await provider.fetch_quote(resolved_symbol)
+    except Exception as e:
+        raise HTTPException(500, f"Quote error: {e}")
 
-    if not resolved_symbol or "|" not in resolved_symbol:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid or unsupported symbol: {symbol}",
-        )
-
-    quote = await provider.fetch_quote(resolved_symbol)
-    price = quote.get("price") if quote else None
-    if price is not None:
-        price = float(price)
+    price = float(quote.get("price")) if quote else None
 
     return {
         "symbol": symbol.upper(),
@@ -114,41 +96,28 @@ async def get_quote(
 
 
 # ===============================
-# CANDLES (Upstox)
+# CANDLES (Upstox + Indicators)
 # ===============================
 @router.get("/candles/{symbol}")
 async def get_candles(
     symbol: str,
     resolution: str = "5",
     period: int = 14,
-    user=Depends(get_current_user)
+    user=Depends(get_current_user),
 ):
-    """
-    Unified candle endpoint.
-    Uses provider router (Upstox).
-    """
-
-    provider, resolved_symbol = await get_provider(symbol)
-
-    if not resolved_symbol or "|" not in resolved_symbol:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid or unsupported symbol: {symbol}"
+    try:
+        provider, resolved_symbol = await get_provider(symbol)
+        candles = await provider.fetch_candles(
+            instrument_key=resolved_symbol,
+            resolution=resolution,
         )
-
-    candles = await provider.fetch_candles(
-        instrument_key=resolved_symbol,
-        resolution=resolution,
-    )
+    except Exception as e:
+        raise HTTPException(500, f"Candle error: {e}")
 
     if not candles:
         return []
 
-    # ===============================
-    # Indicators
-    # ===============================
     closes = [c["close"] for c in candles]
-
     sma_vals = sma(closes, period)
     ema_vals = ema(closes, period)
     rsi_vals = rsi(closes, period)
