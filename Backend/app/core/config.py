@@ -1,16 +1,20 @@
+# app/core/config.py
+
+import os
 from pydantic_settings import BaseSettings
-from pydantic import Field
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DB_PATH = os.path.join(BASE_DIR, "bullseye.db")
 
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Bullseye Backend"
 
     # =====================
-    # DATABASE
+    # DATABASE (stable path for Render)
     # =====================
-    DATABASE_URL: str = Field(
-        default="sqlite+aiosqlite:///./bullseye.db"
-    )
+    DATABASE_URL: str = f"sqlite+aiosqlite:///{DB_PATH}"
 
     # =====================
     # AUTH / JWT
@@ -22,13 +26,7 @@ class Settings(BaseSettings):
     # =====================
     # AI / ML
     # =====================
-    EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     GEMINI_API_KEY: str | None = None
-
-    # =====================
-    # MARKET DATA
-    # =====================
-    FINNHUB_API_KEY: str | None = None
 
     # =====================
     # UPSTOX

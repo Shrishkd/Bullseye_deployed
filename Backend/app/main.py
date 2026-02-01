@@ -1,5 +1,4 @@
-from dotenv import load_dotenv
-load_dotenv()
+# app/main.py
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,21 +9,10 @@ from app.services.instrument_registry import load_instruments
 from app.db.session import engine
 from app.models import Base
 
-# -----------------------------
-# Create FastAPI app
-# -----------------------------
+
 app = FastAPI(title=settings.PROJECT_NAME)
 
-# -----------------------------
-# CORS configuration
-# -----------------------------
-origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-    "http://127.0.0.1:5173",
-]
+origins = ["*"]  # temporary for deploy, tighten later
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,20 +22,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# -----------------------------
-# SAFE STARTUP TASKS (light only)
-# -----------------------------
+
 @app.on_event("startup")
 async def on_startup():
-    # Only lightweight DB init here
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    print("✅ DB ready")
 
-    print("✅ DB ready. Server started successfully.")
 
-# -----------------------------
-# Routers
-# -----------------------------
 app.include_router(health.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(market.router, prefix="/api")
@@ -55,17 +37,13 @@ app.include_router(chat.router, prefix="/api")
 app.include_router(ws_market.router)
 app.include_router(news.router, prefix="/api")
 
-# -----------------------------
-# Admin endpoint to load NSE instruments (run once)
-# -----------------------------
+
 @app.get("/admin/load-instruments")
 def load_all_instruments():
     load_instruments()
-    return {"status": "NSE instruments loaded successfully"}
+    return {"status": "ok"}
 
-# -----------------------------
-# Root endpoint
-# -----------------------------
+
 @app.get("/")
 async def root():
-    return {"message": "Bullseye backend is running"}
+    return {"message": "Bullseye backend running"}
