@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import CandlestickChart from "@/components/CandlestickChart";
 import { getCandles, getQuote, explainIndicators } from "@/lib/api";
-import { useAuthStore } from "@/stores/authStore";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -33,13 +32,12 @@ export default function Market() {
   const [explaining, setExplaining] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
-  const { isAuthenticated } = useAuthStore();
 
   /* ===============================
      LIVE PRICE STREAM (WebSocket)
      =============================== */
   useEffect(() => {
-    if (!isAuthenticated || !debouncedSymbol) {
+    if (!debouncedSymbol) {
       wsRef.current?.close();
       wsRef.current = null;
       setWsConnected(false);
@@ -81,7 +79,7 @@ export default function Market() {
       ws.close();
       wsRef.current = null;
     };
-  }, [debouncedSymbol, isAuthenticated]);
+  }, [debouncedSymbol]);
 
   /* ===============================
      QUOTE (REST) – initial/fallback price
@@ -89,7 +87,7 @@ export default function Market() {
   const { data: quote } = useQuery({
     queryKey: ["quote", debouncedSymbol],
     queryFn: () => getQuote(debouncedSymbol),
-    enabled: isAuthenticated && debouncedSymbol.length > 1,
+    enabled: debouncedSymbol.length > 1,
     staleTime: 30 * 1000,
     retry: false,
   });
@@ -104,7 +102,7 @@ export default function Market() {
   } = useQuery({
     queryKey: ["candles", debouncedSymbol, timeframe],
     queryFn: () => getCandles(debouncedSymbol, timeframe),
-    enabled: isAuthenticated && debouncedSymbol.length > 1,
+    enabled: debouncedSymbol.length > 1,
     staleTime: 60 * 1000,
     retry: false,
   });

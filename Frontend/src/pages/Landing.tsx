@@ -153,17 +153,17 @@ export default function Landing() {
             className="flex items-center gap-3"
           >
             <ThemeToggle />
-            <Link to="/login">
+            <a href="#features">
               <Button
                 variant="ghost"
                 className="transition-smooth text-muted-foreground hover:text-foreground"
               >
-                Login
+                Features
               </Button>
-            </Link>
-            <Link to="/signup">
+            </a>
+            <Link to="/dashboard">
               <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-smooth glow-primary rounded-full px-6">
-                Get Started
+                Explore demo
               </Button>
             </Link>
           </motion.div>
@@ -218,25 +218,25 @@ export default function Landing() {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center"
               >
-                <Link to="/signup">
+                <Link to="/dashboard">
                   <Button
                     size="lg"
                     className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-smooth glow-primary text-lg px-8 rounded-full h-14"
                   >
-                    Get Started
+                    Open app
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <Link to="/login">
+                <a href="#features">
                   <Button
                     size="lg"
                     variant="outline"
                     className="glass hover:glass-strong transition-smooth text-lg px-8 rounded-full h-14 border-primary/30 hover:border-primary/60"
                   >
                     <Play className="mr-2 h-4 w-4 text-primary" />
-                    Watch Demo
+                    See features
                   </Button>
-                </Link>
+                </a>
               </motion.div>
             </motion.div>
 
@@ -534,26 +534,16 @@ export default function Landing() {
                 {' '}Your Trading?
               </h2>
               <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-                Join thousands of traders using AI to make smarter investment
-                decisions. Start your journey today — it&apos;s free.
+                This prototype showcases the full in-app experience — open the demo to explore every screen.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Link to="/signup">
+                <Link to="/dashboard">
                   <Button
                     size="lg"
                     className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-smooth glow-primary text-lg px-12 rounded-full h-14"
                   >
-                    Get Started Now
+                    Enter demo app
                     <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link to="/login">
-                  <Button
-                    size="lg"
-                    variant="ghost"
-                    className="text-lg px-8 text-muted-foreground hover:text-foreground transition-smooth"
-                  >
-                    Already have an account?
                   </Button>
                 </Link>
               </div>
@@ -572,16 +562,10 @@ export default function Landing() {
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link
-                to="/login"
+                to="/dashboard"
                 className="hover:text-foreground transition-smooth"
               >
-                Login
-              </Link>
-              <Link
-                to="/signup"
-                className="hover:text-foreground transition-smooth"
-              >
-                Get Started
+                Open app
               </Link>
               <a
                 href="#features"

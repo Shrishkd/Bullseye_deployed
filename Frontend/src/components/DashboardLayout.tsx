@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -11,7 +10,7 @@ import {
   Bell,
   MessageSquare,
   Settings,
-  LogOut,
+  House,
   Menu,
 } from "lucide-react";
 
@@ -30,8 +29,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useAuthStore } from "@/stores/authStore";
-import { toast } from "sonner";
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
@@ -46,19 +43,6 @@ const navItems = [
 ];
 
 function DashboardSidebar() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { logout } = useAuthStore();
-
-  const currentPath = location.pathname;
-  const isActive = (path: string) => currentPath === path;
-
-  const handleLogout = () => {
-    logout();
-    toast.success("Logged out successfully");
-    navigate("/login");
-  };
-
   return (
     <Sidebar>
       <SidebarContent className="glass-strong border-r border-border/50">
@@ -94,13 +78,11 @@ function DashboardSidebar() {
         </SidebarGroup>
 
         <div className="mt-auto p-4">
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            className="w-full justify-start hover:bg-destructive/10 hover:text-destructive transition-smooth"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="ml-2">Logout</span>
+          <Button variant="ghost" className="w-full justify-start hover:bg-muted/50 transition-smooth" asChild>
+            <NavLink to="/">
+              <House className="h-4 w-4" />
+              <span className="ml-2">Back to landing</span>
+            </NavLink>
           </Button>
         </div>
       </SidebarContent>
@@ -109,20 +91,6 @@ function DashboardSidebar() {
 }
 
 export default function DashboardLayout() {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
-
-  // Prevent rendering until auth is confirmed
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">

@@ -16,12 +16,9 @@ import { toast } from 'sonner';
 
 // ── API ────────────────────────────────────────────────────────────────────────
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace(/\/$/, '');
-const getToken = () => localStorage.getItem('bullseye_token');
 
 async function apiFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const token = getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, { ...opts, headers: { ...headers, ...(opts.headers as any) } });
   const text = await res.text();
   let data: any; try { data = JSON.parse(text); } catch { data = text; }

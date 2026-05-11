@@ -3,14 +3,9 @@ import { PredictionResponse, AvailableModels, ModelType } from '../types/predict
 const API_BASE_URL = 'http://localhost:8000/api';
 
 export class PredictionService {
-  private static getAuthToken(): string {
-    return localStorage.getItem('bullseye_token') || '';  
-  }
-
   private static getHeaders(): HeadersInit {
     return {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.getAuthToken()}`,
     };
   }
 

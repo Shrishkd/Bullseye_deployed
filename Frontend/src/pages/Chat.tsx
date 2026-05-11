@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { chatQuery } from '@/lib/api';
-import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 
 interface Message {
@@ -23,8 +22,6 @@ const quickPrompts = [
 ];
 
 export default function Chat() {
-  const { isAuthenticated } = useAuthStore();
-
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'init',
@@ -49,11 +46,6 @@ export default function Chat() {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-
-    if (!isAuthenticated) {
-      toast.error('Please login to use the AI assistant');
-      return;
-    }
 
     const userMessage: Message = {
       id: Date.now().toString(),

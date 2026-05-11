@@ -1,39 +1,27 @@
 // Frontend/src/lib/api.ts
-// Complete API client — Auth, Market, Chat, News, Portfolio, Risk, Alerts
+// API client — Market, Chat, News, Portfolio, Risk, Alerts (demo: no auth headers)
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ||
   "http://localhost:8000/api";
 
-/* ───────────────────────────────────────────────
-   Token helpers
-   ─────────────────────────────────────────────── */
-export function getToken(): string | null {
-  return localStorage.getItem("bullseye_token");
-}
-
-export function setToken(token: string | null) {
-  if (token) localStorage.setItem("bullseye_token", token);
-  else localStorage.removeItem("bullseye_token");
-}
-
-/* ───────────────────────────────────────────────
-   Core fetch
-   ─────────────────────────────────────────────── */
 async function request<T = any>(path: string, opts: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (opts.headers && typeof opts.headers === "object" && !Array.isArray(opts.headers)) {
-    Object.entries(opts.headers as Record<string, string>).forEach(([k, v]) => { headers[k] = v; });
+    Object.entries(opts.headers as Record<string, string>).forEach(([k, v]) => {
+      headers[k] = v;
+    });
   }
-  const token = getToken();
-  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
-  if (res.status === 401) console.warn("Unauthorized:", path);
 
   const text = await res.text();
   let data: any;
-  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
 
   if (!res.ok) {
     const err: any = new Error(data?.detail || data?.message || (typeof data === "string" ? data : "API error"));
@@ -44,28 +32,6 @@ async function request<T = any>(path: string, opts: RequestInit = {}): Promise<T
   return data as T;
 }
 
-/* ═══════════════════════════════════════════════
-   AUTH
-   ═══════════════════════════════════════════════ */
-export async function signupApi(email: string, password: string, full_name?: string) {
-  return request("/auth/signup", { method: "POST", body: JSON.stringify({ email, password, full_name }) });
-}
-
-export async function loginApi(email: string, password: string) {
-  const data = await request<{ access_token?: string; token?: string }>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  });
-  const token = data?.access_token || data?.token;
-  if (token) setToken(token);
-  return data;
-}
-
-export function logoutApi() { setToken(null); }
-
-/* ═══════════════════════════════════════════════
-   MARKET
-   ═══════════════════════════════════════════════ */
 export async function getAsset(symbol: string) {
   return request(`/market/assets/${encodeURIComponent(symbol)}`);
 }
@@ -90,7 +56,11 @@ export async function getQuote(symbol: string): Promise<QuoteResponse> {
 }
 
 export async function explainIndicators(payload: {
-  symbol: string; price: number; rsi?: number; sma?: number; ema?: number;
+  symbol: string;
+  price: number;
+  rsi?: number;
+  sma?: number;
+  ema?: number;
 }) {
   return request("/chat/explain-indicators", { method: "POST", body: JSON.stringify(payload) });
 }
@@ -99,28 +69,19 @@ export async function ingestPrice(payload: any) {
   return request("/market/prices/ingest", { method: "POST", body: JSON.stringify(payload) });
 }
 
-/* ═══════════════════════════════════════════════
-   CHAT
-   ═══════════════════════════════════════════════ */
 export async function chatQuery(question: string, top_k = 5) {
   return request("/chat/query", { method: "POST", body: JSON.stringify({ question, top_k }) });
 }
 
-/* ═══════════════════════════════════════════════
-   NEWS
-   ═══════════════════════════════════════════════ */
 export async function getBreakingNews() {
   return request("/news/breaking");
 }
 
-/* ═══════════════════════════════════════════════
-   PORTFOLIO
-   ═══════════════════════════════════════════════ */
 export interface HoldingCreate {
   symbol: string;
   quantity: number;
   buy_price: number;
-  buy_date: string;     // ISO string
+  buy_date: string;
   asset_type?: string;
 }
 
@@ -172,18 +133,24 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
 }
 
 export async function importPortfolioCSV(file: File): Promise<CSVImportResult> {
-  const token = getToken();
   const formData = new FormData();
   formData.append("file", file);
   const res = await fetch(`${API_BASE}/portfolio/import`, {
     method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   });
   const text = await res.text();
   let data: any;
-  try { data = JSON.parse(text); } catch { data = text; }
-  if (!res.ok) { const e: any = new Error(data?.detail || "Import failed"); e.status = res.status; throw e; }
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = text;
+  }
+  if (!res.ok) {
+    const e: any = new Error(data?.detail || "Import failed");
+    e.status = res.status;
+    throw e;
+  }
   return data;
 }
 
@@ -191,9 +158,6 @@ export async function getPortfolioInsights(): Promise<{ insights: string }> {
   return request("/portfolio/ai-insights");
 }
 
-/* ═══════════════════════════════════════════════
-   RISK
-   ═══════════════════════════════════════════════ */
 export interface RiskAnalysis {
   overall_risk_level: string;
   portfolio_volatility: number;
@@ -257,9 +221,6 @@ export async function runScenario(market_drop_pct: number): Promise<ScenarioResu
   return request("/risk/scenario", { method: "POST", body: JSON.stringify({ market_drop_pct }) });
 }
 
-/* ═══════════════════════════════════════════════
-   ALERTS
-   ═══════════════════════════════════════════════ */
 export interface Alert {
   id: number;
   symbol: string;
@@ -294,8 +255,12 @@ export interface CheckResult {
   checked: number;
   triggered: number;
   results: Array<{
-    alert_id: number; symbol: string; type: string;
-    message: string; value: number; triggered_at: string;
+    alert_id: number;
+    symbol: string;
+    type: string;
+    message: string;
+    value: number;
+    triggered_at: string;
   }>;
   checked_at: string;
 }
@@ -308,7 +273,10 @@ export async function createAlert(data: AlertCreate): Promise<Alert> {
   return request("/alerts/", { method: "POST", body: JSON.stringify(data) });
 }
 
-export async function updateAlert(id: number, data: { is_active?: boolean; threshold?: number; note?: string }): Promise<Alert> {
+export async function updateAlert(
+  id: number,
+  data: { is_active?: boolean; threshold?: number; note?: string }
+): Promise<Alert> {
   return request(`/alerts/${id}`, { method: "PUT", body: JSON.stringify(data) });
 }
 
@@ -324,15 +292,28 @@ export async function getTriggeredAlerts(limit = 50): Promise<TriggeredAlert[]> 
   return request(`/alerts/triggered?limit=${limit}`);
 }
 
-/* ═══════════════════════════════════════════════
-   Default export (backwards compat)
-   ═══════════════════════════════════════════════ */
 export default {
-  signupApi, loginApi, logoutApi,
-  getAsset, getPrices, getCandles, getQuote, explainIndicators, ingestPrice,
+  getAsset,
+  getPrices,
+  getCandles,
+  getQuote,
+  explainIndicators,
+  ingestPrice,
   chatQuery,
   getBreakingNews,
-  getHoldings, addHolding, deleteHolding, getPortfolioSummary, importPortfolioCSV, getPortfolioInsights,
-  getRiskAnalysis, getSymbolVolatility, runScenario,
-  getAlerts, createAlert, updateAlert, deleteAlert, checkAlerts, getTriggeredAlerts,
+  getHoldings,
+  addHolding,
+  deleteHolding,
+  getPortfolioSummary,
+  importPortfolioCSV,
+  getPortfolioInsights,
+  getRiskAnalysis,
+  getSymbolVolatility,
+  runScenario,
+  getAlerts,
+  createAlert,
+  updateAlert,
+  deleteAlert,
+  checkAlerts,
+  getTriggeredAlerts,
 };

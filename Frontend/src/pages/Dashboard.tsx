@@ -15,12 +15,9 @@ import {
 
 // ── API ────────────────────────────────────────────────────────────────────────
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace(/\/$/, '');
-const getToken = () => localStorage.getItem('bullseye_token');
 
 async function apiFetch<T>(path: string): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const token = getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, { headers });
   if (!res.ok) throw new Error('API error');
   return res.json();
@@ -78,6 +75,94 @@ interface RecentTrigger {
   message: string;
   triggered_at: string;
 }
+
+const DEMO_DASHBOARD_DATA: DashboardData = {
+  portfolio: {
+    total_invested: 862500,
+    total_current_value: 954200,
+    total_pnl: 91700,
+    total_pnl_pct: 10.63,
+    holdings_count: 8,
+    top_gainers: [
+      {
+        symbol: 'NVDA',
+        asset_type: 'stock',
+        pnl: 21500,
+        pnl_pct: 24.8,
+        current_price: 1265.4,
+        buy_price: 1014.2,
+        current_value: 108300,
+        invested_value: 86800,
+      },
+      {
+        symbol: 'BTC',
+        asset_type: 'crypto',
+        pnl: 18900,
+        pnl_pct: 16.9,
+        current_price: 7225000,
+        buy_price: 6185000,
+        current_value: 130700,
+        invested_value: 111800,
+      },
+    ],
+    top_losers: [
+      {
+        symbol: 'PAYTM',
+        asset_type: 'stock',
+        pnl: -4200,
+        pnl_pct: -3.6,
+        current_price: 754.3,
+        buy_price: 782.5,
+        current_value: 112400,
+        invested_value: 116600,
+      },
+    ],
+    asset_allocation: {
+      stock: 54,
+      etf: 18,
+      crypto: 16,
+      mutual_fund: 12,
+    },
+  },
+  holdings: [
+    { symbol: 'NVDA', asset_type: 'stock', pnl: 21500, pnl_pct: 24.8, current_price: 1265.4, buy_price: 1014.2, current_value: 108300, invested_value: 86800 },
+    { symbol: 'BTC', asset_type: 'crypto', pnl: 18900, pnl_pct: 16.9, current_price: 7225000, buy_price: 6185000, current_value: 130700, invested_value: 111800 },
+    { symbol: 'NIFTYBEES', asset_type: 'etf', pnl: 14300, pnl_pct: 11.2, current_price: 264.8, buy_price: 238.2, current_value: 142100, invested_value: 127800 },
+    { symbol: 'TCS', asset_type: 'stock', pnl: 10100, pnl_pct: 8.1, current_price: 4302, buy_price: 3979, current_value: 134200, invested_value: 124100 },
+    { symbol: 'ICICIBANK', asset_type: 'stock', pnl: 6800, pnl_pct: 6.7, current_price: 1222.6, buy_price: 1145.9, current_value: 107800, invested_value: 101000 },
+    { symbol: 'HDFCGOLD', asset_type: 'etf', pnl: 3500, pnl_pct: 4.2, current_price: 72.1, buy_price: 69.2, current_value: 86700, invested_value: 83200 },
+    { symbol: 'SBI_SMALL_CAP', asset_type: 'mutual_fund', pnl: -1200, pnl_pct: -1.4, current_price: 72.6, buy_price: 73.6, current_value: 82600, invested_value: 83800 },
+    { symbol: 'PAYTM', asset_type: 'stock', pnl: -4200, pnl_pct: -3.6, current_price: 754.3, buy_price: 782.5, current_value: 112400, invested_value: 116600 },
+  ],
+  alerts: {
+    total: 14,
+    active: 9,
+    total_triggers: 37,
+    recent_triggers: [
+      { symbol: 'NVDA', alert_type: 'price_above', message: 'NVDA crossed target at $1,250. Momentum remains strong.', triggered_at: '2026-05-11T09:12:00.000Z' },
+      { symbol: 'BTC', alert_type: 'volatility', message: 'BTC volatility spike detected (+4.1% intraday range).', triggered_at: '2026-05-11T08:38:00.000Z' },
+      { symbol: 'NIFTY', alert_type: 'index_change', message: 'NIFTY gained +1.2%, triggered bullish trend alert.', triggered_at: '2026-05-11T07:56:00.000Z' },
+    ],
+  },
+  market_pulse: [
+    { symbol: 'NIFTY 50', price: 24912.45, change_1d_pct: 1.21, change_5d_pct: 2.84, sparkline: [24420, 24480, 24510, 24600, 24570, 24680, 24720, 24830, 24890, 24912], rsi: 64 },
+    { symbol: 'BANKNIFTY', price: 53288.3, change_1d_pct: 0.67, change_5d_pct: 1.92, sparkline: [52410, 52460, 52580, 52620, 52710, 52850, 52910, 53120, 53200, 53288], rsi: 58 },
+    { symbol: 'BTCINR', price: 7225000, change_1d_pct: 2.15, change_5d_pct: 4.8, sparkline: [6890000, 6922000, 6975000, 7038000, 6991000, 7086000, 7120000, 7182000, 7219000, 7225000], rsi: 71 },
+    { symbol: 'ETHINR', price: 368100, change_1d_pct: -0.84, change_5d_pct: 1.3, sparkline: [372400, 371000, 369300, 370800, 368700, 367900, 369100, 368600, 367800, 368100], rsi: 45 },
+  ],
+  portfolio_sparkline: [812000, 818500, 826700, 834400, 828900, 842300, 856200, 871500, 889200, 901100, 918400, 932600, 954200],
+  risk_snapshot: {
+    overall: 'Moderate',
+    concentration_hhi: 0.214,
+    flags: 2,
+  },
+  generated_at: '2026-05-11T09:15:00.000Z',
+  user: {
+    id: 1,
+    email: 'demo@bullseye.ai',
+    name: 'Demo Investor',
+  },
+};
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const fmt = (n: number) =>
@@ -218,9 +303,15 @@ const EmptyState: React.FC<{ icon: React.ElementType; title: string; sub: string
 
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { data, isLoading, error, refetch, isFetching } = useQuery<DashboardData>({
+  const { data, isLoading, refetch, isFetching } = useQuery<DashboardData>({
     queryKey: ['dashboard-summary'],
-    queryFn: () => apiFetch('/dashboard/summary'),
+    queryFn: async () => {
+      try {
+        return await apiFetch('/dashboard/summary');
+      } catch {
+        return DEMO_DASHBOARD_DATA;
+      }
+    },
     refetchInterval: 60_000,
     staleTime: 30_000,
   });
@@ -255,20 +346,6 @@ export default function Dashboard() {
           <div key={i} className="h-52 bg-muted/30 rounded-2xl animate-pulse border border-border/30" />
         ))}
       </div>
-    </div>
-  );
-
-  if (error) return (
-    <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] text-center">
-      <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
-      <h2 className="font-bold text-lg mb-1">Failed to load dashboard</h2>
-      <p className="text-muted-foreground text-sm mb-4">Check your connection or try again.</p>
-      <button
-        onClick={() => refetch()}
-        className="px-4 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20 text-sm font-medium hover:bg-primary/20 transition-colors"
-      >
-        Retry
-      </button>
     </div>
   );
 

@@ -22,12 +22,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const API_BASE =
   (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace(/\/$/, '');
 
-function getToken() { return localStorage.getItem('bullseye_token'); }
-
 async function apiFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const token = getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, { ...opts, headers: { ...headers, ...(opts.headers as any) } });
   const text = await res.text();
   let data: any; try { data = JSON.parse(text); } catch { data = text; }
@@ -61,7 +57,6 @@ const importCSV = async (file: File): Promise<CSVImportResult> => {
   const fd = new FormData(); fd.append('file', file);
   const res = await fetch(`${API_BASE}/portfolio/import`, {
     method: 'POST',
-    headers: getToken() ? { Authorization: `Bearer ${getToken()}` } : {},
     body: fd,
   });
   const text = await res.text();
